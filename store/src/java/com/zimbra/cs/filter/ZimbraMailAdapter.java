@@ -818,7 +818,7 @@ public class ZimbraMailAdapter implements MailAdapter, EnvelopeAccessors {
         if (ctxt != null) {
             StoreManager sm = StoreManager.getInstance();
             InputStream in = null;
-            Blob blob = ctxt.getIncomingBlob();
+            Blob blob = null;
             try {
                 ParsedMessage pm = getParsedMessage();
                 pm.updateMimeMessage();
@@ -829,7 +829,12 @@ public class ZimbraMailAdapter implements MailAdapter, EnvelopeAccessors {
             } finally {
                 ByteUtil.closeStream(in);
             }
-            ctxt.setIncomingBlob(blob);
+            Blob prevBlob = ctxt.getMailBoxSpecificBlob(mailbox.getId());
+            if (prevBlob != null) {
+                sm.quietDelete(prevBlob);
+                ctxt.clearMailBoxSpecificBlob(mailbox.getId());
+            }
+            ctxt.setMailBoxSpecificBlob(mailbox.getId(), blob);
         }
     }
 
